@@ -43,22 +43,26 @@ Be concise, professional, and proactive in suggesting helpful follow-ups."""
 
 
 def load_agent_config(tenant_id: str) -> dict:
-    result = supabase.table("agent_configs") \
-        .select("*") \
-        .eq("tenant_id", tenant_id) \
-        .maybe_single() \
-        .execute()
+    try:
+        result = supabase.table("agent_configs") \
+            .select("*") \
+            .eq("tenant_id", tenant_id) \
+            .maybe_single() \
+            .execute()
 
-    if not result.data:
-        return {
-            "agent_name": "Assistant",
-            "agent_tone": "professional",
-            "business_context": None,
-            "custom_instructions": None,
-            "enabled_tools": ["gmail_read", "gmail_send", "gcal_read", "gcal_create", "sheets_read"],
-        }
-    return result.data
+        if result and result.data:
+            return result.data
+    except Exception:
+        pass
 
+    # Return defaults if no config exists yet
+    return {
+        "agent_name": "Assistant",
+        "agent_tone": "professional",
+        "business_context": None,
+        "custom_instructions": None,
+        "enabled_tools": ["gmail_read", "gmail_send", "gcal_read", "gcal_create", "sheets_read"],
+    }
 
 def save_message(tenant_id, user_id, session_id, role, content, tool_calls=None, tool_results=None):
     supabase.table("conversation_history").insert({

@@ -58,7 +58,7 @@ class TokenService:
             .select("*").eq("user_id", user_id).eq("provider", provider) \
             .maybe_single().execute()
 
-        if not row.data:
+        if not row.data and row:
             raise ValueError(f"No {provider} token found for user {user_id}.")
 
         token_data = row.data

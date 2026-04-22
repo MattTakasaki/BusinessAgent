@@ -57,7 +57,7 @@ def _get_tenant_plan(tenant_id: str) -> str:
         .maybe_single() \
         .execute()
 
-    if result.data:
+    if result.data and result:
         return result.data["plan"]
     return "free"  # default to most restrictive
 
@@ -185,18 +185,20 @@ def _end_of_month_timestamp() -> int:
 
 def _get_postgres_count(tenant_id: str, metric: str) -> int:
     """Fallback: reads usage count directly from Postgres."""
-    period = _billing_period() + "-01"  # first day of month as date
-    result = supabase.table("tenant_usage") \
-        .select(metric) \
-        .eq("tenant_id", tenant_id) \
-        .eq("billing_period_start", period) \
-        .maybe_single() \
-        .execute()
+    period = _billing_period() + "-01"
+    try:
+        result = supabase.table("tenant_usage") \
+            .select(metric) \
+            .eq("tenant_id", tenant_id) \
+            .eq("billing_period_start", period) \
+            .maybe_single() \
+            .execute()
 
-    if result.data:
-        return result.data.get(metric, 0)
-    return 0
-
+        if result and result.data:
+            return result.data.get(metric, 0)
+        return 0
+    except Exception:
+        return 0
 
 def _sync_to_postgres(tenant_id: str, metric: str):
     """Syncs current Redis counter to Postgres tenant_usage table."""
