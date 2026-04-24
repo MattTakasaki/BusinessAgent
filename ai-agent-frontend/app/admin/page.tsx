@@ -250,7 +250,7 @@ export default function AdminDashboard() {
               <label style={labelStyle}>Business Context</label>
               <textarea
                 style={{ ...inputStyle, minHeight: "100px" }}
-                value={config.business_context}
+                value={config.business_context ?? ""}
                 onChange={e => setConfig(p => ({ ...p, business_context: e.target.value }))}
                 placeholder="Describe this business — industry, size, key workflows, important contacts..."
               />
